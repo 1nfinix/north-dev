@@ -1,6 +1,6 @@
 # North Dev（诺思开发版）
 
-North Dev 是供开发人员使用的独立 Windows 桌面发行版。它以 north 为办公版基础，只在 north-dev 分支迭代；以后仅从 north 单向合并到 north-dev，不反向合并。仓库不能保存真实网关地址、请求头值、人员标识或网络前缀；运行配置来自安装目录中的 north.env 与 CI secret。
+North Dev 是供开发人员使用的独立 Windows 桌面发行版。它以 north 为办公版基础，只在 north-dev 分支迭代；以后仅从 north 单向合并到 north-dev，不反向合并。仓库不能保存真实网关地址、请求头值、人员标识或网络前缀；真实运行配置来自每台电脑的用户文件或用户环境变量，安装包只包含无真实配置的占位文件。
 
 ## 产品隔离
 
@@ -10,7 +10,6 @@ North Dev 是供开发人员使用的独立 Windows 桌面发行版。它以 nor
 | App ID | 构建配置中的 DSH_DESKTOP_APP_ID 加 .dev |
 | 安装包 | north-dev- 开头 |
 | 数据目录 | 用户主目录下的 .north-dev |
-| CI secret | NORTH_DEV_ENV |
 | 工作流 | north-dev-ci.yml、north-dev-windows-desktop.yml |
 
 办公版和开发版可并装，桌面 profile 与设置数据分别位于各自的 DSH_HOME。两者目前保留相同的 dsh 协议；协议唤起的归属由操作系统决定。
@@ -21,7 +20,7 @@ North Dev 是供开发人员使用的独立 Windows 桌面发行版。它以 nor
 
 ## 管理员模型设置
 
-管理员在安装目录 resources/north.env 填写模型变量。Windows 用户环境变量优先于文件中的同名变量。可按 north.env.example 的结构配置，示例地址只能用于文档：
+管理员把 `apps/desktop/resources/north.env.example` 复制为 `%USERPROFILE%\.north-dev\north.env`，再填写模型变量并重启 North Dev。启动时先读取这个用户文件，再读取安装包内的 `resources/north.env` 占位文件；同名变量按 Windows 用户环境变量、用户文件、安装包文件的顺序取值。用户文件在升级和重装后保留。示例地址只能用于文档：
 
 | 变量 | 示例或用途 |
 |---|---|
@@ -48,11 +47,11 @@ North Dev 是供开发人员使用的独立 Windows 桌面发行版。它以 nor
 
 ## 打包
 
-在 north-dev 分支安装依赖后，运行 pnpm run package:desktop:win:x64:unsigned。CI 使用 north-dev-windows-desktop.yml，从 NORTH_DEV_ENV 写入临时 north.env，构建未签名安装包并运行安装器、更新与缩放验收。真实配置只放入 CI secret 或本地未跟踪文件。
+在 north-dev 分支安装依赖后，运行 pnpm run package:desktop:win:x64:unsigned。公开仓库的 CI 使用 north-dev-windows-desktop.yml 写入仅含注释的临时 north.env，构建不含真实配置的未签名安装包，并运行安装器、更新与缩放验收。真实模型配置只放在每台电脑的 `%USERPROFILE%\.north-dev\north.env` 或该用户的环境变量中；本机打包若使用真实配置，不公开分发其安装包。
 
 ## 安装后验收
 
-1. 与办公版同时安装，分别启动并确认产品名、安装包名和数据目录独立。
+1. 与办公版同时安装，分别启动并确认产品名、安装包名和数据目录独立；将示例文件复制为 `%USERPROFILE%\.north-dev\north.env` 并填入本机配置，确认安装包内的 `resources/north.env` 仅含注释。
 2. 打开终端与“内置插件”页，确认 standard 为默认预设，office 仍可选择。
 3. 检查 danger-full-access 可选，初始会话仍为 workspace-write 与 ask。
 4. 分别使用三个 LAN 模型对话；如设置了 DeepSeek key，也检查官方模型。
@@ -63,8 +62,8 @@ North Dev 是供开发人员使用的独立 Windows 桌面发行版。它以 nor
 
 以下为本分支首版的逐文件清单。新包资源文件在各自目录内列出。
 
-- `.github/workflows/north-dev-ci.yml`：开发版独立工作流。
-- `.github/workflows/north-dev-windows-desktop.yml`：开发版独立工作流。
+- `.github/workflows/north-dev-ci.yml`：开发版独立工作流，只在向 north-dev 开 PR 或手动触发时运行，以节省私有仓库的 Actions 免费额度。
+- `.github/workflows/north-dev-windows-desktop.yml`：开发版公开构建与仅含注释的打包配置。
 - `NORTH-DEV-CHANGELOG.md`：开发版说明与更新记录。
 - `NORTH-DEV.md`：开发版说明与更新记录。
 - `apps/cli/package.json`：新包与测试接入。
@@ -82,7 +81,7 @@ North Dev 是供开发人员使用的独立 Windows 桌面发行版。它以 nor
 - `apps/desktop/scripts/smoke-packaged-runtime.ts`：开发版可执行文件或产物命名。
 - `apps/desktop/src/locale.ts`：桌面身份、环境变量或配置层接入。
 - `apps/desktop/src/main.ts`：桌面身份、环境变量或配置层接入。
-- `apps/desktop/src/north-env.ts`：三条模型线路的请求头展开与默认 key。
+- `apps/desktop/src/north-env.ts`：用户配置优先于安装包配置，合并后展开三条模型线路的请求头并补默认 key。
 - `apps/desktop/src/project-manager.ts`：桌面身份、环境变量或配置层接入。
 - `apps/desktop/tests/cli-launcher.spec.ts`：桌面身份、配置或打包回归。
 - `apps/desktop/tests/background-notice.spec.ts`：开发版窗口提示文案回归。

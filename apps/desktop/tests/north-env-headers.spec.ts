@@ -13,6 +13,12 @@ function apply(file: string, env: NodeJS.ProcessEnv, interfaces: Interfaces = {}
   applyNorthEnvironment(dir, env, interfaces, 'linux')
   return env
 }
+function userHome(file: string): string {
+  const dir = mkdtempSync(join(tmpdir(), 'north-dev-home-'))
+  dirs.push(dir)
+  writeFileSync(join(dir, 'north.env'), file)
+  return dir
+}
 function nic(address: string, mac: string): Interfaces {
   return { eth0: [{ address, mac, family: 'IPv4', netmask: [255, 255, 0, 0].join('.'), internal: false, cidr: `${address}/16` }] }
 }
@@ -44,6 +50,16 @@ it('keeps a manually supplied MAC', () => {
 it('expands third-model headers', () => {
   const env = apply('NORTH_LLM3_HEADERS={"X-User-Id":"$' + '{NORTH_USER_ID}"}\n', { NORTH_USER_ID: 'user' })
   expect(JSON.parse(env.NORTH_LLM3_HEADERS!)).toEqual({ 'X-User-Id': 'user' })
+})
+it('expands a packaged header with a variable from the user file', () => {
+  const home = userHome('NORTH_USER_ID=user\n')
+  const env = apply('NORTH_LLM3_HEADERS={"X-User-Id":"$' + '{NORTH_USER_ID}"}\n', { DSH_HOME: home })
+  expect(JSON.parse(env.NORTH_LLM3_HEADERS!)).toEqual({ 'X-User-Id': 'user' })
+})
+it('prefers a user header over a packaged header before expanding it', () => {
+  const home = userHome('NORTH_LLM_HEADERS={"X-User-Id":"$' + '{NORTH_USER_ID}"}\n')
+  const env = apply('NORTH_USER_ID=packaged\nNORTH_LLM_HEADERS={"X-Test":"packaged"}\n', { DSH_HOME: home })
+  expect(JSON.parse(env.NORTH_LLM_HEADERS!)).toEqual({ 'X-User-Id': 'packaged' })
 })
 it.each([['no match', nic('203.0.113.1', 'AA:BB:CC:DD:EE:FF')],
   ['zero MAC', nic('192.0.2.3', '00:00:00:00:00:00')]])('%s fails when MAC is required', (_label, interfaces) => {
