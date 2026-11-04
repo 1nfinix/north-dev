@@ -1,0 +1,160 @@
+- dialog "设置":
+  - text: 设置
+  - navigation:
+    - button "通用设置"
+    - button "模型"
+    - button "内置插件"
+    - button "Agent 预设"
+    - button "技能"
+    - button "侧边卡片"
+  - button "打开配置文件"
+  - button "关闭"
+  - heading "内置插件" [level=2]
+  - paragraph: 查看内置部署的插件列表
+  - text: 搜索插件
+  - searchbox "搜索插件"
+  - button "会话插件" [expanded]
+  - button "选择要查看的 Agent 预设": 标准模式（默认）
+  - paragraph: 由 Agent 预设按会话组成
+  - list:
+    - listitem:
+      - button "智能体角色设定, persona, 已启用":
+        - strong: 智能体角色设定
+        - text: 为当前智能体提供组合中定义的角色与行为说明。
+        - code: persona
+    - listitem:
+      - button "工作区指令加载, agent-instructions, 已启用":
+        - strong: 工作区指令加载
+        - text: 读取 AGENTS.md、CLAUDE.md 等文件，为 AI 提供工作区规则。
+        - code: agent-instructions
+    - listitem:
+      - button "时间感知, time-context, 已启用":
+        - strong: 时间感知
+        - text: 每一步把当前时间、浏览器时区和距上一条消息的时长告诉模型。
+        - code: time-context
+    - listitem:
+      - button "Bash 命令工具, tool-bash, 已启用":
+        - strong: Bash 命令工具
+        - text: 让 AI 执行 Bash 命令，并按配置管理后台运行和权限申请。
+        - code: tool-bash
+    - listitem:
+      - button "PowerShell 命令工具, tool-pwsh, 已停用":
+        - strong: PowerShell 命令工具
+        - text: 已停用 让 AI 执行 PowerShell 命令。
+        - code: tool-pwsh
+    - listitem:
+      - button "文件读写工具, tool-fs, 已启用":
+        - strong: 文件读写工具
+        - text: 让 AI 读取、创建和编辑工作文件。
+        - code: tool-fs
+    - listitem:
+      - button "文件搜索工具, tool-fs-search, 已启用":
+        - strong: 文件搜索工具
+        - text: 让 AI 按文件名或文本内容搜索本地文件。
+        - code: tool-fs-search
+    - listitem:
+      - button "后台任务工具, tool-jobs, 已启用":
+        - strong: 后台任务工具
+        - text: 让 AI 查看后台任务、读取输出或停止任务。
+        - code: tool-jobs
+    - listitem:
+      - button "任务调度工具, tool-schedule, 已启用":
+        - strong: 任务调度工具
+        - text: 提供自动化任务的创建、查看、修改和删除工具。
+        - code: tool-schedule
+    - listitem:
+      - button "本地技能加载, skill-filesystem, 已启用":
+        - strong: 本地技能加载
+        - text: 从本地目录发现和读取技能。
+        - code: skill-filesystem
+    - listitem:
+      - button "技能加载工具, tool-skill, 已启用":
+        - strong: 技能加载工具
+        - text: 让 AI 按需加载技能说明。
+        - code: tool-skill
+    - listitem:
+      - button "目标管理命令, command-goal, 已启用":
+        - strong: 目标管理命令
+        - text: 通过用户命令设置和管理当前会话目标。
+        - code: command-goal
+    - listitem:
+      - button "目标管理工具, tool-goal, 已启用":
+        - strong: 目标管理工具
+        - text: 让 AI 设置、查看和更新当前会话目标。
+        - code: tool-goal
+    - listitem:
+      - button "向用户提问工具, tool-ask-user, 已启用":
+        - strong: 向用户提问工具
+        - text: 让 AI 在需要补充信息或选择时向用户提问。
+        - code: tool-ask-user
+    - listitem:
+      - button "待办清单工具, tool-todo, 已启用":
+        - strong: 待办清单工具
+        - text: 让 AI 创建和更新任务待办清单。
+        - code: tool-todo
+    - listitem:
+      - button "网页搜索与读取工具, tool-web, 已启用":
+        - strong: 网页搜索与读取工具
+        - text: 让 AI 搜索网页并读取页面内容。
+        - code: tool-web
+    - listitem:
+      - button "文件交付工具, present, 已启用":
+        - strong: 文件交付工具
+        - text: 让 AI 将工作区文件明确标记为本轮交付内容。
+        - code: present
+    - listitem:
+      - button "插件管理工具, tool-plugin-manager, 已启用":
+        - strong: 插件管理工具
+        - code: tool-plugin-manager
+    - listitem:
+      - button "plugin-market/tools, tool-plugin-market, 已停用":
+        - strong: plugin-market/tools
+        - text: 已停用
+        - code: tool-plugin-market
+    - listitem:
+      - button "计划模式, plan-mode, 已启用":
+        - strong: 计划模式
+        - text: 让 AI 先制定计划，并在用户审阅后切换到执行。
+        - code: plan-mode
+    - listitem:
+      - button "上下文压缩, compaction-basic, 已启用":
+        - strong: 上下文压缩
+        - text: 在上下文达到阈值时，使用模型总结历史内容。
+        - code: compaction-basic
+    - listitem:
+      - button "上下文压缩命令, command-compact, 已启用":
+        - strong: 上下文压缩命令
+        - text: 让用户通过命令主动压缩当前会话上下文。
+        - code: command-compact
+    - listitem:
+      - button "工具结果精简, tool-result-pruner, 已启用":
+        - strong: 工具结果精简
+        - text: 在上下文压力较大时，精简过长的工具输出并保留首尾内容。
+        - code: tool-result-pruner
+    - listitem:
+      - button "子智能体控制工具, tool-subagent-control, 已启用":
+        - strong: 子智能体控制工具
+        - text: 让 AI 向子智能体发送消息或中断其运行。
+        - code: tool-subagent-control
+    - listitem:
+      - button "子智能体委派工具, tool-subagent, 已启用":
+        - strong: 子智能体委派工具
+        - text: 让 AI 将任务交给子智能体，并获取运行结果。
+        - code: tool-subagent
+    - listitem:
+      - button "子智能体委派工具, tool-subagent-fork, 已启用":
+        - strong: 子智能体委派工具
+        - text: 让 AI 将任务交给子智能体，并获取运行结果。
+        - code: tool-subagent-fork
+    - listitem:
+      - button "工作流执行引擎, workflow-ptc, 已启用":
+        - strong: 工作流执行引擎
+        - text: 使用共享的 PTC 运行时执行工作流编排代码。
+        - code: workflow-ptc
+    - listitem:
+      - button "工作流工具, tool-workflow, 已启用":
+        - strong: 工作流工具
+        - text: 让 AI 编写并运行 JavaScript 脚本，编排多项工具操作。
+        - code: tool-workflow
+  - button "全局插件"
+  - paragraph: 系统与所有会话共用

@@ -1,0 +1,109 @@
+# North Dev follows the North office layer and restores development capabilities.
+- id: better-sidebar
+  config:
+    tabsEnabled:
+      terminal-bottom: true
+
+- insert:
+    - id: north-skill-dev
+      name: '@deepseek-ai/dsh-north-skill-dev'
+    - id: north-dev-session-headers
+      name: '@deepseek-ai/dsh-north-dev-bundle'
+      config:
+        headers:
+          - X-Session-Id
+          - x-session-affinity
+
+- id: system-prompt
+  config:
+    includeHarnessIdentity: false
+    personaPrefix: >-
+      你是诺思（North）开发助手，由 {{model}} 模型驱动，帮助开发人员完成编码、调试、测试和代码评审。
+
+- id: harness-dev-context
+  disabled: false
+
+- id: llm-pi-ai
+  config:
+    providers:
+      north-lan:
+        displayName: !!js process.env.NORTH_LLM_DISPLAY_NAME || '内网模型'
+        api: openai-completions
+        baseURL: !!js process.env.NORTH_LLM_BASE_URL || 'http://127.0.0.1:8000/v1'
+        apiKeyEnv: NORTH_LLM_API_KEY
+        headers: !!js JSON.parse(process.env.NORTH_LLM_HEADERS || '{}')
+        compat:
+          supportsDeveloperRole: false
+          supportsStore: false
+          maxTokensField: max_tokens
+        defaultContextWindow: !!js Number(process.env.NORTH_LLM_CONTEXT_WINDOW || 32768)
+        defaultMaxTokens: !!js Number(process.env.NORTH_LLM_MAX_TOKENS || 8192)
+        models:
+          - id: !!js process.env.NORTH_LLM_MODEL || 'north-default'
+            name: !!js process.env.NORTH_LLM_DISPLAY_NAME || '内网模型'
+      north-lan-2:
+        displayName: !!js process.env.NORTH_LLM2_DISPLAY_NAME || '内网模型 2'
+        api: openai-completions
+        baseURL: !!js process.env.NORTH_LLM2_BASE_URL || 'http://127.0.0.1:8001/v1'
+        apiKeyEnv: NORTH_LLM2_API_KEY
+        headers: !!js JSON.parse(process.env.NORTH_LLM2_HEADERS || '{}')
+        compat:
+          supportsDeveloperRole: false
+          supportsStore: false
+          maxTokensField: max_tokens
+        defaultContextWindow: !!js Number(process.env.NORTH_LLM2_CONTEXT_WINDOW || 32768)
+        defaultMaxTokens: !!js Number(process.env.NORTH_LLM2_MAX_TOKENS || 8192)
+        models:
+          - id: !!js process.env.NORTH_LLM2_MODEL || 'north-default-2'
+            name: !!js process.env.NORTH_LLM2_DISPLAY_NAME || '内网模型 2'
+      north-lan-3:
+        displayName: !!js process.env.NORTH_LLM3_DISPLAY_NAME || '内网模型 3'
+        api: openai-completions
+        baseURL: !!js process.env.NORTH_LLM3_BASE_URL || 'http://127.0.0.1:8002/v1'
+        apiKeyEnv: NORTH_LLM3_API_KEY
+        headers: !!js JSON.parse(process.env.NORTH_LLM3_HEADERS || '{}')
+        compat:
+          supportsDeveloperRole: false
+          supportsStore: false
+          maxTokensField: max_tokens
+        defaultContextWindow: !!js Number(process.env.NORTH_LLM3_CONTEXT_WINDOW || 32768)
+        defaultMaxTokens: !!js Number(process.env.NORTH_LLM3_MAX_TOKENS || 8192)
+        models:
+          - id: !!js process.env.NORTH_LLM3_MODEL || 'north-default-3'
+            name: !!js process.env.NORTH_LLM3_DISPLAY_NAME || '内网模型 3'
+
+- id: agent-default-model
+  config:
+    provider: !!js "process.env.DEEPSEEK_API_KEY ? 'deepseek-official' : 'north-lan'"
+    model: !!js "process.env.DEEPSEEK_API_KEY ? (process.env.NORTH_DEEPSEEK_MODEL || 'deepseek-v4-pro') : (process.env.NORTH_LLM_MODEL || 'north-default')"
+
+- id: permission
+  config:
+    presets:
+      read-only:
+        sandbox: read-only
+        approval: ask
+      workspace-write:
+        sandbox: workspace-write
+        approval: ask
+      danger-full-access:
+        sandbox: danger-full-access
+        approval: never
+
+- id: terminal-controller
+  disabled: false
+- id: ui-sidebar-terminal
+  disabled: false
+- id: ui-plugin-manager
+  disabled: false
+- id: ui-settings-plugins
+  disabled: false
+- id: ui-settings-plugin-inventory
+  disabled: false
+- id: preset-ptc
+  disabled: false
+- id: preset-minimal
+  disabled: false
+- id: agent-preset-registry
+  config:
+    default: standard

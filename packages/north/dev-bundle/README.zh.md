@@ -1,0 +1,71 @@
+---
+description: "North Dev 配置层：开发工具、编程预设和模型请求头。"
+kind: "package-bundle"
+---
+
+# @deepseek-ai/dsh-north-dev-bundle
+
+[English](README.md) | 中文
+
+## 概述
+
+North Dev 在 North 配置包之后应用。它恢复终端和插件设置，默认使用标准编程预设，提供可选的完全权限预设，加入模型请求头，并装载开发技能。办公预设仍可使用。
+
+## 目录
+
+- [使用本包](#use-this-package)
+- [了解实现](#understand-the-implementation)
+- [延伸阅读](#further-exploration)
+- [模型体验](#model-experience)
+- [已知限制与延后工作](#known-limitations-and-deferred-work)
+- [开发备注](#dev-note)
+
+-----
+
+<a id="use-this-package"></a>
+## 使用本包
+
+桌面 profile 在 North 配置包后列出本包。它提供 `north-lan`、`north-lan-2` 和 `north-lan-3` 三条内网模型线路。第三条读取 `NORTH_LLM3_` 变量，回退值为 `http://127.0.0.1:8002/v1`、`north-default-3` 和 `内网模型 3`。NORTH_LLM_HEADERS、NORTH_LLM2_HEADERS 和 NORTH_LLM3_HEADERS 是字符串值的 JSON 对象。桌面环境加载器在 Cordis 解析补丁前展开 NORTH_ 占位符。占位符缺失或 JSON 无效会阻止启动。某条线路未设置请求头变量时，该提供者收到空请求头对象。
+
+没有 DEEPSEEK_API_KEY 时默认使用第一个内网模型。初始沙箱仍为 workspace-write，审批仍为 ask；用户可以选择 danger-full-access。
+
+本包还装载自身的 `north-dev-session-headers` 插件。必填的 `headers` 列表指定写入当前 Session id 的 HTTP 头名；发行配置使用 `X-Session-Id` 与 `x-session-affinity`。模型调用没有 Session id 时，每次调用新建一个随机 UUID，并写入所有配置的头名。已有的模型配置请求头和其他插件贡献的请求头继续保留。
+
+-----
+
+<a id="understand-the-implementation"></a>
+## 了解实现
+
+每个目标条目都会替换前一层的完整配置，因此模型提供者条目重写 North 提供者的全部字段。内置技能使用独立的注册表提供者，并复用现有的用户技能根目录。Session 请求头插件通过 `ctx.on()` 监听 `llm-pi-ai/request-headers` 并调用 `next()`；仅装载本配置包时生效。
+
+-----
+
+<a id="further-exploration"></a>
+## 延伸阅读
+
+- [North Dev 运维说明](../../../NORTH-DEV.md)
+- [开发技能](../skill-dev/README.zh.md)
+
+-----
+
+<a id="dev-note"></a>
+## 开发备注
+
+组合测试核对恢复的条目、权限预设、模型选择、请求头表达式及 Session 请求头插件配置。
+
+<a id="model-experience"></a>
+## 模型体验
+
+本配置层通过系统提示词、模型提供者和预设条目间接影响模型输入。
+
+#### KV Cache effect
+
+同一部署中的提示词与预设定义稳定；模型结果追加到会话历史。
+
+## 已知限制与延后工作
+
+<a id="known-limitations-and-deferred-work"></a>
+
+- 自定义请求头能否被网关接受取决于部署的网关，需要安装后验证。
+
+-----
