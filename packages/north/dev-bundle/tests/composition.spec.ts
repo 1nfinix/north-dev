@@ -45,15 +45,18 @@ it('chooses LAN without a DeepSeek key', () => {
   vi.stubEnv('DEEPSEEK_API_KEY', 'test-key')
   expect([evaluate(config.provider), evaluate(config.model)]).toEqual(['deepseek-official', 'deepseek-v4-pro'])
 })
-it('reads all three model header objects and names the third credential', () => {
+it('reads all four model header objects and names the fourth credential', () => {
   const providers = (rows.get('llm-pi-ai')?.config as {
     providers: Record<string, { headers: unknown; apiKeyEnv: string }>
   }).providers
   vi.stubEnv('NORTH_LLM_HEADERS', '{"X-Test":"one"}')
   vi.stubEnv('NORTH_LLM2_HEADERS', '{"X-Test":"two"}')
   vi.stubEnv('NORTH_LLM3_HEADERS', '{"X-Test":"three"}')
+  vi.stubEnv('NORTH_LLM4_HEADERS', '{"X-Test":"four"}')
   expect(evaluate(providers['north-lan']!.headers)).toEqual({ 'X-Test': 'one' })
   expect(evaluate(providers['north-lan-2']!.headers)).toEqual({ 'X-Test': 'two' })
   expect(evaluate(providers['north-lan-3']!.headers)).toEqual({ 'X-Test': 'three' })
   expect(providers['north-lan-3']!.apiKeyEnv).toBe('NORTH_LLM3_API_KEY')
+  expect(evaluate(providers['north-lan-4']!.headers)).toEqual({ 'X-Test': 'four' })
+  expect(providers['north-lan-4']!.apiKeyEnv).toBe('NORTH_LLM4_API_KEY')
 })

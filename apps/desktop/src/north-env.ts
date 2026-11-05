@@ -128,7 +128,7 @@ export function applyNorthEnvironment(
       && address.mac.toLowerCase() !== '00:00:00:00:00:00')
     if (matching !== undefined) env.NORTH_MAC_ID = matching.mac.toLowerCase()
   }
-  for (const name of ['NORTH_LLM_HEADERS', 'NORTH_LLM2_HEADERS', 'NORTH_LLM3_HEADERS'] as const) {
+  for (const name of ['NORTH_LLM_HEADERS', 'NORTH_LLM2_HEADERS', 'NORTH_LLM3_HEADERS', 'NORTH_LLM4_HEADERS'] as const) {
     const raw = env[name]
     if (raw === undefined) continue
     let parsed: unknown
@@ -165,6 +165,7 @@ export function applyNorthEnvironment(
   env.NORTH_LLM_API_KEY ??= 'EMPTY'
   env.NORTH_LLM2_API_KEY ??= 'EMPTY'
   env.NORTH_LLM3_API_KEY ??= 'EMPTY'
+  env.NORTH_LLM4_API_KEY ??= 'EMPTY'
   const proxy = env.NORTH_PROXY
   const network = env.NORTH_PROXY_NETWORK
   if (proxy === undefined || proxy === '' || network === undefined || network === '') return

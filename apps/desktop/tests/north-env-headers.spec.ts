@@ -51,6 +51,10 @@ it('expands third-model headers', () => {
   const env = apply('NORTH_LLM3_HEADERS={"X-User-Id":"$' + '{NORTH_USER_ID}"}\n', { NORTH_USER_ID: 'user' })
   expect(JSON.parse(env.NORTH_LLM3_HEADERS!)).toEqual({ 'X-User-Id': 'user' })
 })
+it('expands fourth-model headers', () => {
+  const env = apply('NORTH_LLM4_HEADERS={"X-User-Id":"$' + '{NORTH_USER_ID}"}\n', { NORTH_USER_ID: 'user' })
+  expect(JSON.parse(env.NORTH_LLM4_HEADERS!)).toEqual({ 'X-User-Id': 'user' })
+})
 it('expands a packaged header with a variable from the user file', () => {
   const home = userHome('NORTH_USER_ID=user\n')
   const env = apply('NORTH_LLM3_HEADERS={"X-User-Id":"$' + '{NORTH_USER_ID}"}\n', { DSH_HOME: home })

@@ -39,6 +39,8 @@ it('allows only the North Dev endpoint and parsed header variables', () => {
     "headers: !!js JSON.parse(process.env.NORTH_LLM2_HEADERS || '{}')",
     "baseURL: !!js process.env.NORTH_LLM3_BASE_URL || 'http://127.0.0.1:8002/v1'",
     "headers: !!js JSON.parse(process.env.NORTH_LLM3_HEADERS || '{}')",
+    "baseURL: !!js process.env.NORTH_LLM4_BASE_URL || 'http://127.0.0.1:8003/v1'",
+    "headers: !!js JSON.parse(process.env.NORTH_LLM4_HEADERS || '{}')",
     'headers: !!js process.env.OTHER_HEADERS',
     'apiKey: !!js process.env.NORTH_LLM_API_KEY',
     "headers: !!js JSON.parse(process.env.NORTH_LLM_HEADERS || '{}') || process.env.OTHER_HEADERS",

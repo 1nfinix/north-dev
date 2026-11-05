@@ -33,8 +33,8 @@ const INLINE_ALLOW: Readonly<Record<string, readonly RegExp[]>> = {
     /^\s*baseURL\s*:\s*!!js process\.env\.NORTH_LLM2?_BASE_URL\b/,
   ],
   'packages/north/dev-bundle/cordis.patch.yml': [
-    /^\s*baseURL\s*:\s*!!js process\.env\.NORTH_LLM(?:2|3)?_BASE_URL\b/,
-    /^\s*headers\s*:\s*!!js JSON\.parse\(process\.env\.NORTH_LLM(?:2|3)?_HEADERS \|\| '\{\}'\)\s*$/,
+    /^\s*baseURL\s*:\s*!!js process\.env\.NORTH_LLM(?:[2-4])?_BASE_URL\b/,
+    /^\s*headers\s*:\s*!!js JSON\.parse\(process\.env\.NORTH_LLM(?:[2-4])?_HEADERS \|\| '\{\}'\)\s*$/,
   ],
 }
 

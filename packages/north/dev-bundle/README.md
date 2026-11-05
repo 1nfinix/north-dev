@@ -25,7 +25,7 @@ North Dev applies after the North bundle. It restores the terminal and plugin se
 <a id="use-this-package"></a>
 ## Use this package
 
-The Desktop profile lists this bundle after the North bundle. It offers three LAN model routes: `north-lan`, `north-lan-2`, and `north-lan-3`. The third route reads `NORTH_LLM3_` variables and defaults to `http://127.0.0.1:8002/v1`, `north-default-3`, and `内网模型 3`. NORTH_LLM_HEADERS, NORTH_LLM2_HEADERS, and NORTH_LLM3_HEADERS are JSON objects with string values. The Desktop environment loader replaces NORTH_ placeholders before Cordis evaluates the patch. Missing placeholders or invalid JSON stop startup. When a header variable is absent, its provider receives an empty headers object.
+The Desktop profile lists this bundle after the North bundle. It offers four LAN model routes: `north-lan`, `north-lan-2`, `north-lan-3`, and `north-lan-4`. The fourth route reads `NORTH_LLM4_` variables and defaults to `http://127.0.0.1:8003/v1`, `north-default-4`, and `内网模型 4`. NORTH_LLM_HEADERS, NORTH_LLM2_HEADERS, NORTH_LLM3_HEADERS, and NORTH_LLM4_HEADERS are JSON objects with string values. The Desktop environment loader replaces NORTH_ placeholders before Cordis evaluates the patch. Missing placeholders or invalid JSON stop startup. When a header variable is absent, its provider receives an empty headers object.
 
 The default model is the first LAN provider unless DEEPSEEK_API_KEY is present. The initial sandbox remains workspace-write with ask approval; users can select danger-full-access.
 

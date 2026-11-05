@@ -80,7 +80,7 @@ describe('applyNorthEnvironment proxy selection', () => {
   it('fills all LAN gateway keys', () => {
     const env: NodeJS.ProcessEnv = {}
     applyNorthEnvironment(resources('NORTH_LLM2_API_KEY=dummy_key\n'), env, {})
-    expect(env).toMatchObject({ NORTH_LLM_API_KEY: 'EMPTY', NORTH_LLM2_API_KEY: 'dummy_key', NORTH_LLM3_API_KEY: 'EMPTY' })
+    expect(env).toMatchObject({ NORTH_LLM_API_KEY: 'EMPTY', NORTH_LLM2_API_KEY: 'dummy_key', NORTH_LLM3_API_KEY: 'EMPTY', NORTH_LLM4_API_KEY: 'EMPTY' })
   })
 })
 

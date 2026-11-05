@@ -25,7 +25,7 @@ North Dev 在 North 配置包之后应用。它恢复终端和插件设置，默
 <a id="use-this-package"></a>
 ## 使用本包
 
-桌面 profile 在 North 配置包后列出本包。它提供 `north-lan`、`north-lan-2` 和 `north-lan-3` 三条内网模型线路。第三条读取 `NORTH_LLM3_` 变量，回退值为 `http://127.0.0.1:8002/v1`、`north-default-3` 和 `内网模型 3`。NORTH_LLM_HEADERS、NORTH_LLM2_HEADERS 和 NORTH_LLM3_HEADERS 是字符串值的 JSON 对象。桌面环境加载器在 Cordis 解析补丁前展开 NORTH_ 占位符。占位符缺失或 JSON 无效会阻止启动。某条线路未设置请求头变量时，该提供者收到空请求头对象。
+桌面 profile 在 North 配置包后列出本包。它提供 `north-lan`、`north-lan-2`、`north-lan-3` 和 `north-lan-4` 四条内网模型线路。第四条读取 `NORTH_LLM4_` 变量，回退值为 `http://127.0.0.1:8003/v1`、`north-default-4` 和 `内网模型 4`。NORTH_LLM_HEADERS、NORTH_LLM2_HEADERS、NORTH_LLM3_HEADERS 和 NORTH_LLM4_HEADERS 是字符串值的 JSON 对象。桌面环境加载器在 Cordis 解析补丁前展开 NORTH_ 占位符。占位符缺失或 JSON 无效会阻止启动。某条线路未设置请求头变量时，该提供者收到空请求头对象。
 
 没有 DEEPSEEK_API_KEY 时默认使用第一个内网模型。初始沙箱仍为 workspace-write，审批仍为 ask；用户可以选择 danger-full-access。
 

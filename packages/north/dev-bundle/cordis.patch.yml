@@ -71,6 +71,21 @@
         models:
           - id: !!js process.env.NORTH_LLM3_MODEL || 'north-default-3'
             name: !!js process.env.NORTH_LLM3_DISPLAY_NAME || '内网模型 3'
+      north-lan-4:
+        displayName: !!js process.env.NORTH_LLM4_DISPLAY_NAME || '内网模型 4'
+        api: openai-completions
+        baseURL: !!js process.env.NORTH_LLM4_BASE_URL || 'http://127.0.0.1:8003/v1'
+        apiKeyEnv: NORTH_LLM4_API_KEY
+        headers: !!js JSON.parse(process.env.NORTH_LLM4_HEADERS || '{}')
+        compat:
+          supportsDeveloperRole: false
+          supportsStore: false
+          maxTokensField: max_tokens
+        defaultContextWindow: !!js Number(process.env.NORTH_LLM4_CONTEXT_WINDOW || 32768)
+        defaultMaxTokens: !!js Number(process.env.NORTH_LLM4_MAX_TOKENS || 8192)
+        models:
+          - id: !!js process.env.NORTH_LLM4_MODEL || 'north-default-4'
+            name: !!js process.env.NORTH_LLM4_DISPLAY_NAME || '内网模型 4'
 
 - id: agent-default-model
   config:
