@@ -1,6 +1,6 @@
 /** North CI reaches the North distribution Web regressions through one narrow, artifact-ordered gate aggregate. */
 
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { resolve } from 'node:path'
 import * as yaml from 'js-yaml'
 import { describe, expect, it } from 'vitest'
@@ -84,6 +84,39 @@ describe('North CI', () => {
     expect(existsSync(resolve(root, 'apps/desktop/scripts/north-windows-scaling.mjs'))).toBe(true)
   })
 
+  it('builds public unsigned macOS DMGs for both architectures without release settings', () => {
+    const workflowText = readFileSync(resolve(root, '.github/workflows/north-macos-desktop.yml'), 'utf8')
+    expect(workflowText).not.toContain('secrets.')
+    const workflow: unknown = yaml.load(workflowText)
+    if (!isRecord(workflow) || !isRecord(workflow.jobs) || !isRecord(workflow.on)) throw new TypeError('North macOS package must define jobs and triggers')
+    expect(workflow.on).toEqual({
+      workflow_dispatch: null,
+      push: { branches: ['north', 'main'], paths: ['.github/workflows/north-macos-desktop.yml'] },
+    })
+    const job = workflow.jobs.package
+    if (!isRecord(job) || !isRecord(job.strategy) || !isRecord(job.strategy.matrix)) throw new TypeError('North macOS package must define an architecture matrix')
+    expect(job['runs-on']).toBe('${{ matrix.runner }}')
+    expect(job.strategy.matrix.include).toEqual([{ arch: 'arm64', runner: 'macos-latest' }, { arch: 'x64', runner: 'macos-15-intel' }])
+    const jobSteps = steps(job)
+    const runs = jobSteps.map(step => typeof step.run === 'string' ? step.run : '')
+    const placeholder = jobSteps.find(step => step.name === 'Write packaged North placeholder')
+    expect(placeholder?.run).toContain("'# Put real settings in ~/.north/north.env; see north.env.example for variables.'")
+    expect(placeholder?.run).toContain('NORTH_ENV_PATH=$RUNNER_TEMP/north.env')
+    expect(runs).toContain('pnpm run package:desktop:mac:${{ matrix.arch }}:unsigned -- --check')
+    expect(runs).toContain('pnpm run package:desktop:mac:${{ matrix.arch }}:unsigned')
+    expect(runs.findIndex(run => run.includes('NORTH_ENV_PATH='))).toBeLessThan(runs.findIndex(run => run.includes('-- --check')))
+    expect(runs.findIndex(run => run.includes('-- --check'))).toBeLessThan(runs.indexOf('pnpm run package:desktop:mac:${{ matrix.arch }}:unsigned'))
+    expect(runs.join('\n')).toContain('test "$(uname -m)" = "$expected"')
+    const installer = jobSteps.find(step => step.name === 'Retain unsigned installer')
+    const diagnostics = jobSteps.find(step => step.name === 'Retain packaging diagnostics')
+    expect(installer?.with).toMatchObject({ 'retention-days': 7, 'if-no-files-found': 'error' })
+    expect(installer?.with).toMatchObject({ name: 'north-macos-${{ matrix.arch }}-unsigned-${{ github.run_id }}-${{ github.run_attempt }}' })
+    if (!isRecord(installer?.with) || typeof installer.with.path !== 'string') throw new TypeError('North macOS installer artifact must define paths')
+    expect(installer.with.path).toContain('unsigned-artifacts/*.dmg')
+    expect(installer.with.path).toContain('unsigned-artifacts/*.zip')
+    expect(diagnostics?.with).toMatchObject({ 'retention-days': 14, path: 'apps/desktop/.desktop-build/packaging-runs/' })
+  })
+
   it('uses build and site gates rather than installer packaging for North CI Windows blocking', () => {
     const workflow: unknown = yaml.load(readFileSync(resolve(root, '.github/workflows/north-ci.yml'), 'utf8'))
     if (!isRecord(workflow) || !isRecord(workflow.jobs)) throw new TypeError('North CI must define jobs')
@@ -115,6 +148,14 @@ describe('North CI', () => {
 })
 
 describe('North Dev CI', () => {
+  it('keeps only the two North Dev packaging workflows in the public snapshot', () => {
+    const excluded = new Set(readFileSync(resolve(root, '.north-dev-public-exclude'), 'utf8').split('\n'))
+    const kept = readdirSync(resolve(root, '.github/workflows'))
+      .filter(name => /^north.*\.yml$/u.test(name))
+      .filter(name => !excluded.has(`.github/workflows/${name}`))
+    expect(kept.sort()).toEqual(['north-dev-macos-desktop.yml', 'north-dev-windows-desktop.yml'])
+  })
+
   it('runs its own pull request and manual gates on north-dev', () => {
     const workflow: unknown = yaml.load(readFileSync(resolve(root, '.github/workflows/north-dev-ci.yml'), 'utf8'))
     if (!isRecord(workflow) || !isRecord(workflow.jobs)) throw new TypeError('North Dev CI must define jobs')
@@ -145,6 +186,45 @@ describe('North Dev CI', () => {
     expect(placeholder?.run).toContain('"NORTH_ENV_PATH=$path" | Out-File -FilePath $env:GITHUB_ENV -Append')
     expect(steps(job).findIndex(step => step === placeholder))
       .toBeLessThan(steps(job).findIndex(step => step.name === 'Check packaging configuration and toolchain'))
+  })
+
+  it('builds public North Dev macOS packages on native architecture runners without secrets', () => {
+    const workflowText = readFileSync(resolve(root, '.github/workflows/north-dev-macos-desktop.yml'), 'utf8')
+    expect(workflowText).not.toContain('secrets.')
+    const workflow: unknown = yaml.load(workflowText)
+    if (!isRecord(workflow) || !isRecord(workflow.jobs) || !isRecord(workflow.on)) {
+      throw new TypeError('North Dev macOS package must define jobs and triggers')
+    }
+    expect(workflow.on).toEqual({
+      workflow_dispatch: null,
+      push: { branches: ['north-dev', 'main'], paths: ['.github/workflows/north-dev-macos-desktop.yml'] },
+    })
+    const job = workflow.jobs.package
+    if (!isRecord(job) || !isRecord(job.strategy) || !isRecord(job.strategy.matrix)) {
+      throw new TypeError('North Dev macOS package must define an architecture matrix')
+    }
+    expect(job['runs-on']).toBe('${{ matrix.runner }}')
+    expect(job.strategy.matrix.include).toEqual([{ arch: 'arm64', runner: 'macos-latest' }, { arch: 'x64', runner: 'macos-15-intel' }])
+    const jobSteps = steps(job)
+    const runs = jobSteps.map(step => typeof step.run === 'string' ? step.run : '')
+    const placeholder = jobSteps.find(step => step.name === 'Write packaged North Dev placeholder')
+    expect(placeholder?.run).toContain("'# Put real settings in ~/.north-dev/north.env; see north.env.example for variables.'")
+    expect(placeholder?.run).toContain('NORTH_ENV_PATH=$RUNNER_TEMP/north.env')
+    expect(runs).toContain('pnpm run package:desktop:mac:${{ matrix.arch }}:unsigned -- --check')
+    expect(runs).toContain('pnpm run package:desktop:mac:${{ matrix.arch }}:unsigned')
+    expect(runs.findIndex(run => run.includes('NORTH_ENV_PATH='))).toBeLessThan(runs.findIndex(run => run.includes('-- --check')))
+    expect(runs.findIndex(run => run.includes('-- --check'))).toBeLessThan(runs.indexOf('pnpm run package:desktop:mac:${{ matrix.arch }}:unsigned'))
+    const installer = jobSteps.find(step => step.name === 'Retain unsigned installer')
+    const diagnostics = jobSteps.find(step => step.name === 'Retain packaging diagnostics')
+    expect(installer?.with).toMatchObject({
+      name: 'north-dev-macos-${{ matrix.arch }}-unsigned-${{ github.run_id }}-${{ github.run_attempt }}',
+      'retention-days': 7,
+      'if-no-files-found': 'error',
+    })
+    expect(diagnostics?.with).toMatchObject({
+      name: 'north-dev-macos-${{ matrix.arch }}-qualification-${{ github.run_id }}-${{ github.run_attempt }}',
+      'retention-days': 14,
+    })
   })
 
   it('supplies qualification-only identities when launching the installed application', () => {

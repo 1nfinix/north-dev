@@ -1,12 +1,13 @@
 import { fileURLToPath } from 'node:url'
 import { loadOverlayPatches } from '@deepseek-ai/dsh-app-boot'
+import { applyEntryPatches } from '@deepseek-ai/cordis-plugin-include'
 import { afterEach, expect, it, vi } from 'vitest'
 import manifest from '../package.json' with { type: 'json' }
 import * as DevBundle from '../src/index.ts'
 
 const patch = manifest.dsh.bundle.patch.flatMap(path =>
   loadOverlayPatches('north-dev-test', fileURLToPath(new URL('../' + path, import.meta.url))))
-const rows = new Map(patch.filter(row => row.id !== undefined).map(row => [row.id!, row]))
+const rows = new Map(patch.toReversed().filter(row => row.id !== undefined).map(row => [row.id!, row]))
 function evaluate(node: unknown): unknown {
   const { __jsExpr } = node as { __jsExpr: string }
   // eslint-disable-next-line @typescript-eslint/no-implied-eval -- the Loader evaluates these expressions the same way
@@ -59,4 +60,60 @@ it('reads all four model header objects and names the fourth credential', () => 
   expect(providers['north-lan-3']!.apiKeyEnv).toBe('NORTH_LLM3_API_KEY')
   expect(evaluate(providers['north-lan-4']!.headers)).toEqual({ 'X-Test': 'four' })
   expect(providers['north-lan-4']!.apiKeyEnv).toBe('NORTH_LLM4_API_KEY')
+})
+
+const presetSources = [
+  ['preset-standard', '../../../bundle/web-app/presets/standard.patch.yml'],
+  ['preset-ptc', '../../../bundle/web-app/presets/ptc.patch.yml'],
+  ['preset-minimal', '../../../bundle/web-app/presets/minimal.patch.yml'],
+  ['preset-cordis', '../../../bundle/web-app/presets/cordis.patch.yml'],
+  ['preset-office', '../../bundle/presets/office.patch.yml'],
+] as const
+
+function compactionPolicies(id: string, path: string) {
+  const source = loadOverlayPatches('north-dev-test', fileURLToPath(new URL(path, import.meta.url)))
+  const warnings: string[] = []
+  const entries = applyEntryPatches([], [...source, ...patch.filter(row => row.id === id)],
+    (message) => { warnings.push(message) })
+  expect(warnings).toEqual([])
+  const preset = entries.find(row => row.id === id)
+  const presetConfig = preset?.config as {
+    plugins: { id: string; config?: { id: string; config?: { modelPolicies: unknown[] } }[] }[]
+  }
+  const plugins = presetConfig.plugins
+  const compaction = plugins.find(row => row.id === 'compaction')
+  const backend = compaction?.config?.find(row => row.id === 'compaction-basic')
+  const policies = backend?.config?.modelPolicies
+  if (backend !== undefined) delete backend.config
+  expect(preset).toEqual(applyEntryPatches([], source, () => {}).find(row => row.id === id))
+  return policies
+}
+
+it('configures all isolated preset compaction backends for four LAN routes', () => {
+  for (const [id, path] of presetSources) {
+    const policies = compactionPolicies(id, path) as {
+      provider: string
+      model: unknown
+      headroomTokens: unknown
+    }[]
+    expect(policies).toHaveLength(4)
+    for (const [index, [provider, prefix, defaultModel]] of [
+      ['north-lan', 'NORTH_LLM', 'north-default'],
+      ['north-lan-2', 'NORTH_LLM2', 'north-default-2'],
+      ['north-lan-3', 'NORTH_LLM3', 'north-default-3'],
+      ['north-lan-4', 'NORTH_LLM4', 'north-default-4'],
+    ].entries()) {
+      const policy = policies[index]!
+      expect(policy.provider).toBe(provider)
+      vi.stubEnv(`${prefix}_MODEL`, undefined)
+      vi.stubEnv(`${prefix}_MAX_TOKENS`, undefined)
+      expect(evaluate(policy.model)).toBe(defaultModel)
+      expect(evaluate(policy.headroomTokens)).toBe(8192)
+      vi.stubEnv(`${prefix}_MODEL`, `example-model-${index}`)
+      vi.stubEnv(`${prefix}_MAX_TOKENS`, '65536')
+      expect(evaluate(policy.model)).toBe(`example-model-${index}`)
+      expect(evaluate(policy.headroomTokens)).toBe(65536)
+    }
+    vi.unstubAllEnvs()
+  }
 })

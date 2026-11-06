@@ -1,6 +1,6 @@
 # North Dev（诺思开发版）
 
-North Dev 是供开发人员使用的独立 Windows 桌面发行版。它以 north 为办公版基础，只在 north-dev 分支迭代；以后仅从 north 单向合并到 north-dev，不反向合并。仓库不能保存真实网关地址、请求头值、人员标识或网络前缀；真实运行配置来自每台电脑的用户文件或用户环境变量，安装包只包含无真实配置的占位文件。
+North Dev 是供开发人员使用的独立 Windows 与 macOS 桌面发行版。它以 north 为办公版基础，只在 north-dev 分支迭代；以后仅从 north 单向合并到 north-dev，不反向合并。仓库不能保存真实网关地址、请求头值、人员标识或网络前缀；真实运行配置来自每台电脑的用户文件或用户环境变量，安装包只包含无真实配置的占位文件。
 
 ## 产品隔离
 
@@ -10,7 +10,7 @@ North Dev 是供开发人员使用的独立 Windows 桌面发行版。它以 nor
 | App ID | 构建配置中的 DSH_DESKTOP_APP_ID 加 .dev |
 | 安装包 | north-dev- 开头 |
 | 数据目录 | 用户主目录下的 .north-dev |
-| 工作流 | north-dev-ci.yml、north-dev-windows-desktop.yml |
+| 工作流 | north-dev-ci.yml、north-dev-windows-desktop.yml、north-dev-macos-desktop.yml |
 
 办公版和开发版可并装，桌面 profile 与设置数据分别位于各自的 DSH_HOME。两者目前保留相同的 dsh 协议；协议唤起的归属由操作系统决定。
 
@@ -18,9 +18,11 @@ North Dev 是供开发人员使用的独立 Windows 桌面发行版。它以 nor
 
 开发版在 North 办公配置包之后应用 dev-bundle。它重新启用终端、插件管理与内置插件页，默认使用上游 standard 编程预设，并保留 office 办公预设供选择。初始沙箱为 workspace-write、审批为 ask；用户可选择 danger-full-access。skill-dev 单独注册八个技能：代码评审、提交信息、排错、单元测试、代码解读、SQL 评审、接口文档与脚本辅助。写作技能和用户技能目录仍由原有包维护。
 
+每个内置预设的压缩后端按模型线路设置 `modelPolicies`：精确匹配提供者和模型标识，余量读取对应线路的 `NORTH_LLM*_MAX_TOKENS`，未设置时与提供者一样回退到 8192。切换到小上下文模型前，仍应保证该模型的上下文窗口大于实际请求输出预留与压缩余量之和。
+
 ## 管理员模型设置
 
-管理员把 `apps/desktop/resources/north.env.example` 复制为 `%USERPROFILE%\.north-dev\north.env`，再填写模型变量并重启 North Dev。启动时先读取这个用户文件，再读取安装包内的 `resources/north.env` 占位文件；同名变量按 Windows 用户环境变量、用户文件、安装包文件的顺序取值。用户文件在升级和重装后保留。示例地址只能用于文档：
+管理员把 `apps/desktop/resources/north.env.example` 复制到 Windows 的 `%USERPROFILE%\.north-dev\north.env` 或 macOS 的 `~/.north-dev/north.env`，再填写模型变量并重启 North Dev。启动时先读取这个用户文件，再读取安装包内的 `resources/north.env` 占位文件；同名变量按进程环境变量、用户文件、安装包文件的顺序取值。用户文件在升级和重装后保留。示例地址只能用于文档：
 
 模型选择器提供 `north-lan`、`north-lan-2`、`north-lan-3` 和 `north-lan-4` 四条内网线路；新增线路不改变新会话的默认模型。
 
@@ -52,7 +54,7 @@ North Dev 是供开发人员使用的独立 Windows 桌面发行版。它以 nor
 
 ## 打包
 
-在 north-dev 分支安装依赖后，运行 pnpm run package:desktop:win:x64:unsigned。公开仓库的 CI 使用 north-dev-windows-desktop.yml 写入仅含注释的临时 north.env，构建不含真实配置的未签名安装包，并运行安装器、更新与缩放验收。真实模型配置只放在每台电脑的 `%USERPROFILE%\.north-dev\north.env` 或该用户的环境变量中；本机打包若使用真实配置，不公开分发其安装包。
+在 north-dev 分支安装依赖后，Windows 可运行 pnpm run package:desktop:win:x64:unsigned，macOS 可运行 pnpm run package:desktop:mac:arm64:unsigned 或 pnpm run package:desktop:mac:x64:unsigned。公开仓库的 Windows 与 macOS 打包工作流都写入仅含注释的临时 north.env，构建不含真实配置的未签名安装包；Windows 工作流还运行安装器、更新与缩放验收。真实模型配置只放在每台电脑的用户 `north.env` 或环境变量中；本机打包若使用真实配置，不公开分发其安装包。
 
 ## 安装后验收
 
@@ -63,12 +65,21 @@ North Dev 是供开发人员使用的独立 Windows 桌面发行版。它以 nor
 5. 由网关确认四个模型请求头被接受。网关拒绝 Authorization 时配置对应的 NORTH_LLM_API_KEY、NORTH_LLM2_API_KEY、NORTH_LLM3_API_KEY 或 NORTH_LLM4_API_KEY 后重试。
 6. 在新会话输入 /，确认八个开发技能与原有写作技能可见。
 
+## 公开仓库同步
+
+公开库 `1nfinix/north-dev` 的 `main` 只保存从私有库 `north-dev` 分支导出的快照，不作为开发分支。导出时按 [.north-dev-public-exclude](.north-dev-public-exclude) 排除上游开发资料、文档门禁所需文件、办公版工作流与开发版 CI；保留 `north-dev-windows-desktop.yml` 和 `north-dev-macos-desktop.yml`。不能排除 pnpm 工作区成员，否则公开构建的 `pnpm install --frozen-lockfile` 会失败。
+
+同步快照时，将 `NORTH-CHANGELOG.md` 和 `NORTH-DEV-CHANGELOG.md` 都裁到 2026-11-06 及以后的小节，较早记录仅保留在私有库。公开库安装包通过手动触发两个 North Dev 打包工作流构建；工作流只写入注释占位配置，不携带真实模型设置。以后从 north 合并时保留本分支的 `.github/README.md`，并按新增文件检查排除清单。
+
 ## 相对 north 分支的维护文件
 
 以下为本分支首版的逐文件清单。新包资源文件在各自目录内列出。
 
+- `.github/README.md`：公开库开发版首页；与 north 分支的办公版内容不同，以后从 north 合并时保留开发版内容。
 - `.github/workflows/north-dev-ci.yml`：开发版独立工作流，只在向 north-dev 开 PR 或手动触发时运行，以节省私有仓库的 Actions 免费额度。
+- `.github/workflows/north-dev-macos-desktop.yml`：开发版双架构 macOS 未签名打包工作流。
 - `.github/workflows/north-dev-windows-desktop.yml`：开发版公开构建与仅含注释的打包配置。
+- `.north-dev-public-exclude`：开发版公开库快照的路径排除清单。
 - `NORTH-DEV-CHANGELOG.md`：开发版说明与更新记录。
 - `NORTH-DEV.md`：开发版说明与更新记录。
 - `apps/cli/package.json`：新包与测试接入。
@@ -135,9 +146,9 @@ North Dev 是供开发人员使用的独立 Windows 桌面发行版。它以 nor
 - `packages/client/ui-sidebar/tests/sidebar-root.client.spec.tsx`：本地化标题回归。
 - `packages/client/ui-sidebar/tests/__snapshots__/sidebar-snapshot.client.spec.tsx.snap`：开发版侧栏标题快照。
 - `packages/north/dev-bundle/README.i18n.yaml`：开发版配置包双语内容记录。
-- `packages/north/dev-bundle/README.md`：开发版配置包与 Session 请求头行为。
-- `packages/north/dev-bundle/README.zh.md`：开发版配置包与 Session 请求头行为。
-- `packages/north/dev-bundle/cordis.patch.yml`：四条模型线路与 Session 请求头插件装载。
+- `packages/north/dev-bundle/README.md`：开发版配置包、按模型压缩策略与 Session 请求头行为。
+- `packages/north/dev-bundle/README.zh.md`：开发版配置包、按模型压缩策略与 Session 请求头行为。
+- `packages/north/dev-bundle/cordis.patch.yml`：四条模型线路、各预设压缩策略与 Session 请求头插件装载。
 - `packages/north/dev-bundle/locale/de.json`：开发版配置包。
 - `packages/north/dev-bundle/locale/en.json`：开发版配置包。
 - `packages/north/dev-bundle/locale/es.json`：开发版配置包。
@@ -148,7 +159,7 @@ North Dev 是供开发人员使用的独立 Windows 桌面发行版。它以 nor
 - `packages/north/dev-bundle/locale/zh.json`：开发版配置包。
 - `packages/north/dev-bundle/package.json`：开发版配置包的运行时与测试依赖。
 - `packages/north/dev-bundle/src/index.ts`：按请求写入 Session id 的插件。
-- `packages/north/dev-bundle/tests/composition.spec.ts`：四条模型线路与插件装载回归。
+- `packages/north/dev-bundle/tests/composition.spec.ts`：四条模型线路、预设压缩策略与插件装载回归。
 - `packages/north/dev-bundle/tests/request-headers.spec.ts`：Session 请求头贡献与回退行为回归。
 - `packages/north/dev-bundle/tsconfig.json`：开发版配置包的 TypeScript 项目引用。
 - `packages/north/skill-dev/README.i18n.yaml`：开发技能包。

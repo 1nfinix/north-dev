@@ -29,6 +29,8 @@ North Dev 在 North 配置包之后应用。它恢复终端和插件设置，默
 
 没有 DEEPSEEK_API_KEY 时默认使用第一个内网模型。初始沙箱仍为 workspace-write，审批仍为 ask；用户可以选择 danger-full-access。
 
+每个内置代理预设都为独立的压缩后端配置四条线路的精确策略。每条策略读取对应的 `NORTH_LLM*_MODEL` 和 `NORTH_LLM*_MAX_TOKENS`，模型标识与输出上限的回退值和提供者一致。小上下文模型的输出上限设置合理时，压缩余量会随之缩小；若配置更大的输出上限，仍需提供足够大的上下文窗口。
+
 本包还装载自身的 `north-dev-session-headers` 插件。必填的 `headers` 列表指定写入当前 Session id 的 HTTP 头名；发行配置使用 `X-Session-Id` 与 `x-session-affinity`。模型调用没有 Session id 时，每次调用新建一个随机 UUID，并写入所有配置的头名。已有的模型配置请求头和其他插件贡献的请求头继续保留。
 
 -----
@@ -36,7 +38,7 @@ North Dev 在 North 配置包之后应用。它恢复终端和插件设置，默
 <a id="understand-the-implementation"></a>
 ## 了解实现
 
-每个目标条目都会替换前一层的完整配置，因此模型提供者条目重写 North 提供者的全部字段。内置技能使用独立的注册表提供者，并复用现有的用户技能根目录。Session 请求头插件通过 `ctx.on()` 监听 `llm-pi-ai/request-headers` 并调用 `next()`；仅装载本配置包时生效。
+每个目标条目都会替换前一层的完整配置，因此模型提供者条目重写 North 提供者的全部字段。根层的 `compaction-basic` 条目已禁用，配置补丁也无法直接修改预设中的嵌套插件条目，因此各预设声明需要完整覆盖。内置技能使用独立的注册表提供者，并复用现有的用户技能根目录。Session 请求头插件通过 `ctx.on()` 监听 `llm-pi-ai/request-headers` 并调用 `next()`；仅装载本配置包时生效。
 
 -----
 
@@ -51,7 +53,7 @@ North Dev 在 North 配置包之后应用。它恢复终端和插件设置，默
 <a id="dev-note"></a>
 ## 开发备注
 
-组合测试核对恢复的条目、权限预设、模型选择、请求头表达式及 Session 请求头插件配置。
+组合测试核对恢复的条目、权限预设、模型选择、精确压缩策略、请求头表达式及 Session 请求头插件配置。
 
 <a id="model-experience"></a>
 ## 模型体验

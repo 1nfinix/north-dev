@@ -29,6 +29,8 @@ The Desktop profile lists this bundle after the North bundle. It offers four LAN
 
 The default model is the first LAN provider unless DEEPSEEK_API_KEY is present. The initial sandbox remains workspace-write with ask approval; users can select danger-full-access.
 
+Every shipped agent preset gives its isolated compaction backend an exact policy for each LAN route. Each policy reads the route's `NORTH_LLM*_MODEL` and `NORTH_LLM*_MAX_TOKENS`, using the same model id and output-limit defaults as the provider. This keeps the compaction headroom within a small model's context when its configured output limit fits; a larger configured limit still requires a sufficiently large context window.
+
 The bundle also mounts its own `north-dev-session-headers` plugin. Its required `headers` list names the HTTP headers that receive the current Session id. The shipped profile configures `X-Session-Id` and `x-session-affinity`. A model call without a Session id receives a new random UUID for that call, shared by all configured header names. Existing profile headers and other contributors' headers remain available.
 
 -----
@@ -36,7 +38,7 @@ The bundle also mounts its own `north-dev-session-headers` plugin. Its required 
 <a id="understand-the-implementation"></a>
 ## Understand the implementation
 
-Each targeted row replaces the entire configuration from the preceding bundle. The model provider row therefore restates all North provider fields. The bundled skills use their own registry provider and share the existing user skill root. The Session header plugin listens to `llm-pi-ai/request-headers` through `ctx.on()` and delegates with `next()`; it is active only when this bundle is loaded.
+Each targeted row replaces the entire configuration from the preceding bundle. The model provider row therefore restates all North provider fields. Preset declarations also require complete overrides because the root `compaction-basic` row is disabled and profile patches cannot reach a preset's nested plugin rows. The bundled skills use their own registry provider and share the existing user skill root. The Session header plugin listens to `llm-pi-ai/request-headers` through `ctx.on()` and delegates with `next()`; it is active only when this bundle is loaded.
 
 -----
 
@@ -51,7 +53,7 @@ Each targeted row replaces the entire configuration from the preceding bundle. T
 <a id="dev-note"></a>
 ## Dev Note
 
-The composition test checks restored rows, permission presets, model routing, header expressions, and the Session header plugin configuration.
+The composition test checks restored rows, permission presets, model routing, exact compaction policies, header expressions, and the Session header plugin configuration.
 
 <a id="model-experience"></a>
 ## Model Experience
