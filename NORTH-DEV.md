@@ -18,13 +18,13 @@ North Dev 是供开发人员使用的独立 Windows 与 macOS 桌面发行版。
 
 开发版在 North 办公配置包之后应用 dev-bundle。它重新启用终端、插件管理与内置插件页，默认使用上游 standard 编程预设，并保留 office 办公预设供选择。初始沙箱为 workspace-write、审批为 ask；用户可选择 danger-full-access。skill-dev 单独注册八个技能：代码评审、提交信息、排错、单元测试、代码解读、SQL 评审、接口文档与脚本辅助。写作技能和用户技能目录仍由原有包维护。
 
-每个内置预设的压缩后端按模型线路设置 `modelPolicies`：精确匹配提供者和模型标识，余量读取对应线路的 `NORTH_LLM*_MAX_TOKENS`，未设置时与提供者一样回退到 8192。切换到小上下文模型前，仍应保证该模型的上下文窗口大于实际请求输出预留与压缩余量之和。
+每个内置预设的压缩后端按模型线路设置 `modelPolicies`：未注册线路的策略不匹配任何模型；已注册线路精确匹配提供者和模型标识，余量读取对应线路的 `NORTH_LLM*_MAX_TOKENS`，未设置时与提供者一样回退到 8192。切换到小上下文模型前，仍应保证该模型的上下文窗口大于实际请求输出预留与压缩余量之和。
 
 ## 管理员模型设置
 
 管理员把 `apps/desktop/resources/north.env.example` 复制到 Windows 的 `%USERPROFILE%\.north-dev\north.env` 或 macOS 的 `~/.north-dev/north.env`，再填写模型变量并重启 North Dev。启动时先读取这个用户文件，再读取安装包内的 `resources/north.env` 占位文件；同名变量按进程环境变量、用户文件、安装包文件的顺序取值。用户文件在升级和重装后保留。示例地址只能用于文档：
 
-模型选择器提供 `north-lan`、`north-lan-2`、`north-lan-3` 和 `north-lan-4` 四条内网线路；新增线路不改变新会话的默认模型。
+模型选择器最多显示 `north-lan`、`north-lan-2`、`north-lan-3` 和 `north-lan-4` 四条内网线路；只有设置对应的 `NORTH_LLM{,2,3,4}_BASE_URL` 后才显示。新会话有 DEEPSEEK_API_KEY 时默认使用官方模型，否则按第一至第四条的顺序选择首条已配置线路；都未配置时回落官方模型。
 
 | 变量 | 示例或用途 |
 |---|---|
@@ -61,8 +61,8 @@ North Dev 是供开发人员使用的独立 Windows 与 macOS 桌面发行版。
 1. 与办公版同时安装，分别启动并确认产品名、安装包名和数据目录独立；将示例文件复制为 `%USERPROFILE%\.north-dev\north.env` 并填入本机配置，确认安装包内的 `resources/north.env` 仅含注释。
 2. 打开终端与“内置插件”页，确认 standard 为默认预设，office 仍可选择。
 3. 检查 danger-full-access 可选，初始会话仍为 workspace-write 与 ask。
-4. 分别使用四个 LAN 模型对话；如设置了 DeepSeek key，也检查官方模型。
-5. 由网关确认四个模型请求头被接受。网关拒绝 Authorization 时配置对应的 NORTH_LLM_API_KEY、NORTH_LLM2_API_KEY、NORTH_LLM3_API_KEY 或 NORTH_LLM4_API_KEY 后重试。
+4. 为需要的线路分别设置地址，并使用已配置的 LAN 模型对话；确认未配置线路不显示。如设置了 DeepSeek key，也检查官方模型。
+5. 由网关确认已配置线路的模型请求头被接受。网关拒绝 Authorization 时配置对应的 NORTH_LLM_API_KEY、NORTH_LLM2_API_KEY、NORTH_LLM3_API_KEY 或 NORTH_LLM4_API_KEY 后重试。
 6. 在新会话输入 /，确认八个开发技能与原有写作技能可见。
 
 ## 公开仓库同步
@@ -88,13 +88,15 @@ North Dev 是供开发人员使用的独立 Windows 与 macOS 桌面发行版。
 - `apps/desktop/resources/north.env.example`：管理员四条模型线路的运行时配置示例。
 - `apps/desktop/scripts/desktop-build-version-discovery.ts`：开发版可执行文件或产物命名。
 - `apps/desktop/scripts/desktop-upload-plan.ts`：开发版可执行文件或产物命名。
-- `apps/desktop/scripts/electron-builder-config.mjs`：开发版可执行文件或产物命名。
+- `apps/desktop/scripts/electron-builder-config.d.mts`：开发版产品名的 TypeScript 声明。
+- `apps/desktop/scripts/electron-builder-config.mjs`：开发版产品名与打包配置。
 - `apps/desktop/scripts/installed-update-distribution.ts`：开发版可执行文件或产物命名。
 - `apps/desktop/scripts/north-windows-scaling.mjs`：安装后缩放验收的启动占位环境。
-- `apps/desktop/scripts/package-macos.ts`：开发版可执行文件或产物命名。
-- `apps/desktop/scripts/package-target.ts`：开发版可执行文件或产物命名。
+- `apps/desktop/scripts/package-macos.ts`：从打包配置读取开发版应用包名。
+- `apps/desktop/scripts/package-target.ts`：从打包配置读取开发版应用包名。
 - `apps/desktop/scripts/retain-desktop-ci.ts`：开发版可执行文件或产物命名。
-- `apps/desktop/scripts/smoke-packaged-runtime.ts`：开发版可执行文件或产物命名。
+- `apps/desktop/scripts/smoke-packaged-runtime.ts`：从打包配置读取开发版应用包名。
+- `apps/desktop/scripts/verify-retained-desktop.ts`：从打包配置读取留存安装包内的应用包名。
 - `apps/desktop/src/locale.ts`：桌面身份、环境变量或配置层接入。
 - `apps/desktop/src/main.ts`：桌面身份、环境变量或配置层接入。
 - `apps/desktop/src/north-env.ts`：用户配置优先于安装包配置，合并后展开四条模型线路的请求头并补默认 key。
@@ -214,5 +216,5 @@ North Dev 是供开发人员使用的独立 Windows 与 macOS 桌面发行版。
 - `docs/module-graph.md`：新包模块图生成结果。
 - `docs/module-graph.zh.md`：新包模块图生成结果。
 - `packages/preset/agent-preset/skills/cordis-composition-reference/references/packages.md`：新包配置的目录、门禁或对应测试。
-- `scripts/verify-config-source-ownership.spec.ts`：第三、四条线路配置来源白名单回归。
-- `scripts/verify-config-source-ownership.ts`：开发版四条线路地址与请求头来源白名单。
+- `scripts/verify-config-source-ownership.spec.ts`：开发版配置来源门禁回归。
+- `scripts/verify-config-source-ownership.ts`：开发版与办公版统一拒绝内联地址和凭据。

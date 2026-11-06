@@ -38,28 +38,48 @@ it('restores full access while keeping startup defaults', () => {
     'danger-full-access': { sandbox: 'danger-full-access', approval: 'never' },
   } })
 })
-it('chooses LAN without a DeepSeek key', () => {
+it('chooses the first configured LAN route, or DeepSeek when none is configured', () => {
   const config = rows.get('agent-default-model')?.config as { provider: unknown; model: unknown }
   vi.stubEnv('DEEPSEEK_API_KEY', undefined)
+  vi.stubEnv('NORTH_DEEPSEEK_MODEL', undefined)
+  for (const prefix of ['NORTH_LLM', 'NORTH_LLM2', 'NORTH_LLM3', 'NORTH_LLM4']) {
+    vi.stubEnv(`${prefix}_BASE_URL`, undefined)
+  }
+  expect([evaluate(config.provider), evaluate(config.model)]).toEqual(['deepseek-official', 'deepseek-v4-pro'])
+  vi.stubEnv('NORTH_LLM4_BASE_URL', 'https://example.com/four')
+  expect([evaluate(config.provider), evaluate(config.model)]).toEqual(['north-lan-4', 'north-default-4'])
+  vi.stubEnv('NORTH_LLM2_BASE_URL', 'https://example.com/two')
+  expect([evaluate(config.provider), evaluate(config.model)]).toEqual(['north-lan-2', 'north-default-2'])
+  vi.stubEnv('NORTH_LLM_BASE_URL', 'https://example.com/one')
   vi.stubEnv('NORTH_LLM_MODEL', 'example-model-a')
   expect([evaluate(config.provider), evaluate(config.model)]).toEqual(['north-lan', 'example-model-a'])
   vi.stubEnv('DEEPSEEK_API_KEY', 'test-key')
   expect([evaluate(config.provider), evaluate(config.model)]).toEqual(['deepseek-official', 'deepseek-v4-pro'])
 })
-it('reads all four model header objects and names the fourth credential', () => {
-  const providers = (rows.get('llm-pi-ai')?.config as {
-    providers: Record<string, { headers: unknown; apiKeyEnv: string }>
-  }).providers
+it('registers only configured providers with their headers and credentials', () => {
+  const expression = (rows.get('llm-pi-ai')?.config as { providers: unknown }).providers
+  const prefixes = ['NORTH_LLM', 'NORTH_LLM2', 'NORTH_LLM3', 'NORTH_LLM4']
+  for (const prefix of prefixes) {
+    vi.stubEnv(`${prefix}_BASE_URL`, undefined)
+    vi.stubEnv(`${prefix}_HEADERS`, undefined)
+  }
+  expect(evaluate(expression)).toEqual({})
+  vi.stubEnv('NORTH_LLM3_BASE_URL', 'https://example.com/three')
+  expect(Object.keys(evaluate(expression) as object)).toEqual(['north-lan-3'])
+  for (const [index, prefix] of prefixes.entries()) {
+    vi.stubEnv(`${prefix}_BASE_URL`, `https://example.com/${String(index + 1)}`)
+  }
   vi.stubEnv('NORTH_LLM_HEADERS', '{"X-Test":"one"}')
   vi.stubEnv('NORTH_LLM2_HEADERS', '{"X-Test":"two"}')
   vi.stubEnv('NORTH_LLM3_HEADERS', '{"X-Test":"three"}')
   vi.stubEnv('NORTH_LLM4_HEADERS', '{"X-Test":"four"}')
-  expect(evaluate(providers['north-lan']!.headers)).toEqual({ 'X-Test': 'one' })
-  expect(evaluate(providers['north-lan-2']!.headers)).toEqual({ 'X-Test': 'two' })
-  expect(evaluate(providers['north-lan-3']!.headers)).toEqual({ 'X-Test': 'three' })
-  expect(providers['north-lan-3']!.apiKeyEnv).toBe('NORTH_LLM3_API_KEY')
-  expect(evaluate(providers['north-lan-4']!.headers)).toEqual({ 'X-Test': 'four' })
-  expect(providers['north-lan-4']!.apiKeyEnv).toBe('NORTH_LLM4_API_KEY')
+  const providers = evaluate(expression) as Record<string, { headers: Record<string, string>; apiKeyEnv: string; baseURL: string }>
+  expect(Object.keys(providers)).toEqual(['north-lan', 'north-lan-2', 'north-lan-3', 'north-lan-4'])
+  for (const [index, provider] of Object.values(providers).entries()) {
+    expect(provider.headers).toEqual({ 'X-Test': ['one', 'two', 'three', 'four'][index] })
+    expect(provider.apiKeyEnv).toBe(`${prefixes[index]}_API_KEY`)
+    expect(provider.baseURL).toBe(`https://example.com/${String(index + 1)}`)
+  }
 })
 
 const presetSources = [

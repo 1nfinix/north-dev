@@ -25,11 +25,11 @@ North Dev 在 North 配置包之后应用。它恢复终端和插件设置，默
 <a id="use-this-package"></a>
 ## 使用本包
 
-桌面 profile 在 North 配置包后列出本包。它提供 `north-lan`、`north-lan-2`、`north-lan-3` 和 `north-lan-4` 四条内网模型线路。第四条读取 `NORTH_LLM4_` 变量，回退值为 `http://127.0.0.1:8003/v1`、`north-default-4` 和 `内网模型 4`。NORTH_LLM_HEADERS、NORTH_LLM2_HEADERS、NORTH_LLM3_HEADERS 和 NORTH_LLM4_HEADERS 是字符串值的 JSON 对象。桌面环境加载器在 Cordis 解析补丁前展开 NORTH_ 占位符。占位符缺失或 JSON 无效会阻止启动。某条线路未设置请求头变量时，该提供者收到空请求头对象。
+桌面 profile 在 North 配置包后列出本包。它最多注册 `north-lan`、`north-lan-2`、`north-lan-3` 和 `north-lan-4` 四条内网模型线路。只有设置了对应的 `NORTH_LLM{,2,3,4}_BASE_URL`，线路才会显示。第四条读取 `NORTH_LLM4_` 变量，模型标识和显示名的回退值为 `north-default-4` 和 `内网模型 4`。NORTH_LLM_HEADERS、NORTH_LLM2_HEADERS、NORTH_LLM3_HEADERS 和 NORTH_LLM4_HEADERS 是字符串值的 JSON 对象。桌面环境加载器在 Cordis 解析补丁前展开 NORTH_ 占位符。占位符缺失或 JSON 无效会阻止启动。某条线路未设置请求头变量时，该提供者收到空请求头对象。
 
-没有 DEEPSEEK_API_KEY 时默认使用第一个内网模型。初始沙箱仍为 workspace-write，审批仍为 ask；用户可以选择 danger-full-access。
+有 DEEPSEEK_API_KEY 时新会话默认使用 DeepSeek 官方模型；否则依次选择首条已配置的内网线路，四条都未配置时回落官方模型。初始沙箱仍为 workspace-write，审批仍为 ask；用户可以选择 danger-full-access。
 
-每个内置代理预设都为独立的压缩后端配置四条线路的精确策略。每条策略读取对应的 `NORTH_LLM*_MODEL` 和 `NORTH_LLM*_MAX_TOKENS`，模型标识与输出上限的回退值和提供者一致。小上下文模型的输出上限设置合理时，压缩余量会随之缩小；若配置更大的输出上限，仍需提供足够大的上下文窗口。
+每个内置代理预设都为独立的压缩后端配置四条线路的精确策略。未注册线路的策略不会匹配任何模型，因此不会生效。每条策略读取对应的 `NORTH_LLM*_MODEL` 和 `NORTH_LLM*_MAX_TOKENS`，模型标识与输出上限的回退值和提供者一致。小上下文模型的输出上限设置合理时，压缩余量会随之缩小；若配置更大的输出上限，仍需提供足够大的上下文窗口。
 
 本包还装载自身的 `north-dev-session-headers` 插件。必填的 `headers` 列表指定写入当前 Session id 的 HTTP 头名；发行配置使用 `X-Session-Id` 与 `x-session-affinity`。模型调用没有 Session id 时，每次调用新建一个随机 UUID，并写入所有配置的头名。已有的模型配置请求头和其他插件贡献的请求头继续保留。
 

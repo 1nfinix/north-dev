@@ -25,72 +25,76 @@
 
 - id: llm-pi-ai
   config:
-    providers:
-      north-lan:
-        displayName: !!js process.env.NORTH_LLM_DISPLAY_NAME || '内网模型'
-        api: openai-completions
-        baseURL: !!js process.env.NORTH_LLM_BASE_URL || 'http://127.0.0.1:8000/v1'
-        apiKeyEnv: NORTH_LLM_API_KEY
-        headers: !!js JSON.parse(process.env.NORTH_LLM_HEADERS || '{}')
-        compat:
-          supportsDeveloperRole: false
-          supportsStore: false
-          maxTokensField: max_tokens
-        defaultContextWindow: !!js Number(process.env.NORTH_LLM_CONTEXT_WINDOW || 32768)
-        defaultMaxTokens: !!js Number(process.env.NORTH_LLM_MAX_TOKENS || 8192)
-        models:
-          - id: !!js process.env.NORTH_LLM_MODEL || 'north-default'
-            name: !!js process.env.NORTH_LLM_DISPLAY_NAME || '内网模型'
-      north-lan-2:
-        displayName: !!js process.env.NORTH_LLM2_DISPLAY_NAME || '内网模型 2'
-        api: openai-completions
-        baseURL: !!js process.env.NORTH_LLM2_BASE_URL || 'http://127.0.0.1:8001/v1'
-        apiKeyEnv: NORTH_LLM2_API_KEY
-        headers: !!js JSON.parse(process.env.NORTH_LLM2_HEADERS || '{}')
-        compat:
-          supportsDeveloperRole: false
-          supportsStore: false
-          maxTokensField: max_tokens
-        defaultContextWindow: !!js Number(process.env.NORTH_LLM2_CONTEXT_WINDOW || 32768)
-        defaultMaxTokens: !!js Number(process.env.NORTH_LLM2_MAX_TOKENS || 8192)
-        models:
-          - id: !!js process.env.NORTH_LLM2_MODEL || 'north-default-2'
-            name: !!js process.env.NORTH_LLM2_DISPLAY_NAME || '内网模型 2'
-      north-lan-3:
-        displayName: !!js process.env.NORTH_LLM3_DISPLAY_NAME || '内网模型 3'
-        api: openai-completions
-        baseURL: !!js process.env.NORTH_LLM3_BASE_URL || 'http://127.0.0.1:8002/v1'
-        apiKeyEnv: NORTH_LLM3_API_KEY
-        headers: !!js JSON.parse(process.env.NORTH_LLM3_HEADERS || '{}')
-        compat:
-          supportsDeveloperRole: false
-          supportsStore: false
-          maxTokensField: max_tokens
-        defaultContextWindow: !!js Number(process.env.NORTH_LLM3_CONTEXT_WINDOW || 32768)
-        defaultMaxTokens: !!js Number(process.env.NORTH_LLM3_MAX_TOKENS || 8192)
-        models:
-          - id: !!js process.env.NORTH_LLM3_MODEL || 'north-default-3'
-            name: !!js process.env.NORTH_LLM3_DISPLAY_NAME || '内网模型 3'
-      north-lan-4:
-        displayName: !!js process.env.NORTH_LLM4_DISPLAY_NAME || '内网模型 4'
-        api: openai-completions
-        baseURL: !!js process.env.NORTH_LLM4_BASE_URL || 'http://127.0.0.1:8003/v1'
-        apiKeyEnv: NORTH_LLM4_API_KEY
-        headers: !!js JSON.parse(process.env.NORTH_LLM4_HEADERS || '{}')
-        compat:
-          supportsDeveloperRole: false
-          supportsStore: false
-          maxTokensField: max_tokens
-        defaultContextWindow: !!js Number(process.env.NORTH_LLM4_CONTEXT_WINDOW || 32768)
-        defaultMaxTokens: !!js Number(process.env.NORTH_LLM4_MAX_TOKENS || 8192)
-        models:
-          - id: !!js process.env.NORTH_LLM4_MODEL || 'north-default-4'
-            name: !!js process.env.NORTH_LLM4_DISPLAY_NAME || '内网模型 4'
+    providers: !!js |
+      ({
+        ...(process.env.NORTH_LLM_BASE_URL ? {
+          'north-lan': {
+            displayName: process.env.NORTH_LLM_DISPLAY_NAME || '内网模型',
+            api: 'openai-completions',
+            baseURL: process.env.NORTH_LLM_BASE_URL,
+            apiKeyEnv: 'NORTH_LLM_API_KEY',
+            headers: JSON.parse(process.env.NORTH_LLM_HEADERS || '{}'),
+            compat: { supportsDeveloperRole: false, supportsStore: false, maxTokensField: 'max_tokens' },
+            defaultContextWindow: Number(process.env.NORTH_LLM_CONTEXT_WINDOW || 32768),
+            defaultMaxTokens: Number(process.env.NORTH_LLM_MAX_TOKENS || 8192),
+            models: [{ id: process.env.NORTH_LLM_MODEL || 'north-default', name: process.env.NORTH_LLM_DISPLAY_NAME || '内网模型' }],
+          },
+        } : {}),
+        ...(process.env.NORTH_LLM2_BASE_URL ? {
+          'north-lan-2': {
+            displayName: process.env.NORTH_LLM2_DISPLAY_NAME || '内网模型 2',
+            api: 'openai-completions',
+            baseURL: process.env.NORTH_LLM2_BASE_URL,
+            apiKeyEnv: 'NORTH_LLM2_API_KEY',
+            headers: JSON.parse(process.env.NORTH_LLM2_HEADERS || '{}'),
+            compat: { supportsDeveloperRole: false, supportsStore: false, maxTokensField: 'max_tokens' },
+            defaultContextWindow: Number(process.env.NORTH_LLM2_CONTEXT_WINDOW || 32768),
+            defaultMaxTokens: Number(process.env.NORTH_LLM2_MAX_TOKENS || 8192),
+            models: [{ id: process.env.NORTH_LLM2_MODEL || 'north-default-2', name: process.env.NORTH_LLM2_DISPLAY_NAME || '内网模型 2' }],
+          },
+        } : {}),
+        ...(process.env.NORTH_LLM3_BASE_URL ? {
+          'north-lan-3': {
+            displayName: process.env.NORTH_LLM3_DISPLAY_NAME || '内网模型 3',
+            api: 'openai-completions',
+            baseURL: process.env.NORTH_LLM3_BASE_URL,
+            apiKeyEnv: 'NORTH_LLM3_API_KEY',
+            headers: JSON.parse(process.env.NORTH_LLM3_HEADERS || '{}'),
+            compat: { supportsDeveloperRole: false, supportsStore: false, maxTokensField: 'max_tokens' },
+            defaultContextWindow: Number(process.env.NORTH_LLM3_CONTEXT_WINDOW || 32768),
+            defaultMaxTokens: Number(process.env.NORTH_LLM3_MAX_TOKENS || 8192),
+            models: [{ id: process.env.NORTH_LLM3_MODEL || 'north-default-3', name: process.env.NORTH_LLM3_DISPLAY_NAME || '内网模型 3' }],
+          },
+        } : {}),
+        ...(process.env.NORTH_LLM4_BASE_URL ? {
+          'north-lan-4': {
+            displayName: process.env.NORTH_LLM4_DISPLAY_NAME || '内网模型 4',
+            api: 'openai-completions',
+            baseURL: process.env.NORTH_LLM4_BASE_URL,
+            apiKeyEnv: 'NORTH_LLM4_API_KEY',
+            headers: JSON.parse(process.env.NORTH_LLM4_HEADERS || '{}'),
+            compat: { supportsDeveloperRole: false, supportsStore: false, maxTokensField: 'max_tokens' },
+            defaultContextWindow: Number(process.env.NORTH_LLM4_CONTEXT_WINDOW || 32768),
+            defaultMaxTokens: Number(process.env.NORTH_LLM4_MAX_TOKENS || 8192),
+            models: [{ id: process.env.NORTH_LLM4_MODEL || 'north-default-4', name: process.env.NORTH_LLM4_DISPLAY_NAME || '内网模型 4' }],
+          },
+        } : {}),
+      })
 
 - id: agent-default-model
   config:
-    provider: !!js "process.env.DEEPSEEK_API_KEY ? 'deepseek-official' : 'north-lan'"
-    model: !!js "process.env.DEEPSEEK_API_KEY ? (process.env.NORTH_DEEPSEEK_MODEL || 'deepseek-v4-pro') : (process.env.NORTH_LLM_MODEL || 'north-default')"
+    provider: !!js >-
+      process.env.DEEPSEEK_API_KEY ? 'deepseek-official'
+      : process.env.NORTH_LLM_BASE_URL ? 'north-lan'
+      : process.env.NORTH_LLM2_BASE_URL ? 'north-lan-2'
+      : process.env.NORTH_LLM3_BASE_URL ? 'north-lan-3'
+      : process.env.NORTH_LLM4_BASE_URL ? 'north-lan-4' : 'deepseek-official'
+    model: !!js >-
+      process.env.DEEPSEEK_API_KEY ? (process.env.NORTH_DEEPSEEK_MODEL || 'deepseek-v4-pro')
+      : process.env.NORTH_LLM_BASE_URL ? (process.env.NORTH_LLM_MODEL || 'north-default')
+      : process.env.NORTH_LLM2_BASE_URL ? (process.env.NORTH_LLM2_MODEL || 'north-default-2')
+      : process.env.NORTH_LLM3_BASE_URL ? (process.env.NORTH_LLM3_MODEL || 'north-default-3')
+      : process.env.NORTH_LLM4_BASE_URL ? (process.env.NORTH_LLM4_MODEL || 'north-default-4') : (process.env.NORTH_DEEPSEEK_MODEL || 'deepseek-v4-pro')
 
 - id: permission
   config:

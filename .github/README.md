@@ -41,6 +41,8 @@ xattr -dr com.apple.quarantine "/Applications/North Dev.app"
 
 North Dev 按「已有进程环境变量 → 用户目录中的 `north.env` → 安装包中的注释占位文件」取值。修改用户配置后，完全退出应用再启动。完整变量和 RFC 5737 示例地址见 [north.env.example](../apps/desktop/resources/north.env.example)。
 
+四条局域网线路分别在填写 `NORTH_LLM_BASE_URL`、`NORTH_LLM2_BASE_URL`、`NORTH_LLM3_BASE_URL`、`NORTH_LLM4_BASE_URL` 后显示；未填写地址的线路不出现在模型选择器中。若四条都未配置，新会话默认选择 DeepSeek 官方模型。
+
 | 变量 | 用途 |
 |---|---|
 | `NORTH_LLM_BASE_URL`、`NORTH_LLM2_BASE_URL`、`NORTH_LLM3_BASE_URL`、`NORTH_LLM4_BASE_URL` | 四条线路的 OpenAI 兼容网关地址；示例：`http://192.0.2.10:8088/v1` |

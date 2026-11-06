@@ -23,13 +23,27 @@ describe('configuration source ownership gate', () => {
 
     expect(collectConfigSourceOwnershipViolations(root)).toEqual([
       'packages/subagent/subagent-claude-code/cordis.patch.yml:2: inlines a credential or endpoint from the environment.'
-      + ' The adapter resolves apiKeyEnv through ctx.credentials and the endpoint through the'
-      + ' environment snapshot; inlining here bypasses both ladders.',
+      + ' Use apiKeyEnv for credentials and put endpoint selection in the adapter or a reviewed'
+      + ' bundle-level providers expression.',
+    ])
+  })
+
+  it('does not exempt inline endpoints in the North bundle', () => {
+    const root = mkdtempSync(join(tmpdir(), 'dsh-config-source-ownership-'))
+    roots.push(root)
+    const directory = join(root, 'packages/north/bundle')
+    mkdirSync(directory, { recursive: true })
+    writeFileSync(join(directory, 'cordis.patch.yml'), 'baseURL: !!js process.env.NORTH_LLM_BASE_URL\n')
+
+    expect(collectConfigSourceOwnershipViolations(root)).toEqual([
+      'packages/north/bundle/cordis.patch.yml:1: inlines a credential or endpoint from the environment.'
+      + ' Use apiKeyEnv for credentials and put endpoint selection in the adapter or a reviewed'
+      + ' bundle-level providers expression.',
     ])
   })
 })
 
-it('allows only the North Dev endpoint and parsed header variables', () => {
+it('rejects inline North Dev endpoints and headers', () => {
   const root = mkdtempSync(join(tmpdir(), 'dsh-config-source-ownership-'))
   roots.push(root)
   const directory = join(root, 'packages/north/dev-bundle')
@@ -46,5 +60,5 @@ it('allows only the North Dev endpoint and parsed header variables', () => {
     "headers: !!js JSON.parse(process.env.NORTH_LLM_HEADERS || '{}') || process.env.OTHER_HEADERS",
     '',
   ].join('\n'))
-  expect(collectConfigSourceOwnershipViolations(root)).toHaveLength(3)
+  expect(collectConfigSourceOwnershipViolations(root)).toHaveLength(9)
 })
